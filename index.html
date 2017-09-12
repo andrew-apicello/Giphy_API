@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Giphy Api</title>
+</head>
+<body>
+	<div class="container">
+		<div class="buttonList">
+		</div>
+		<form id="topicForm">
+			<label for="topic-input">Add a Topic:</label>
+			<input type="text" id="topic-input"><br>
+
+			<!-- Button triggers new movie to be added -->
+			<input id="add-topic" type="submit" value="Add a Movie Bro">
+		</form>
+		<div class="imageList">	
+		</div>
+	</div>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script type="text/javascript">
+
+
+	//generate buttons
+	var favoritesList = ["lion","tiger","bobcat","jaguar","cheetah","cougar","panther"]
+
+
+
+	$("#add-topic").on("click", function(){
+
+		event.preventDefault();
+
+		var input = $("#topic-input").val().trim();
+		console.log("hello")
+		console.log(input);
+		favoritesList.push(input);
+		console.log(input)
+		writeFavoritesList()
+	});
+
+
+	function writeFavoritesList(){
+
+		$(".buttonList").empty()
+
+		for (var i = 0; i < favoritesList.length; i++){
+
+			var targetDiv = $(".buttonList")
+			var newDiv = $("<button class=\"favoriteButton\" data-cat=" + favoritesList[i] + "\">")
+			newDiv.html(String(favoritesList[i]))
+			targetDiv.append(newDiv)
+		}
+	}
+	writeFavoritesList()
+
+
+
+
+	//by clicking on the button, calls gify api and shows image
+
+	$(document).on("click", ".favoriteButton", displayGifs);
+
+
+	function displayGifs(){
+
+		var apiKey = "1e70ea46a290442eb06333638dd3e8b9";
+		var query = $(this).attr("data-cat")
+		var limit = "10"
+		var myUrl = "https://api.giphy.com/v1/gifs/search?q=" + query + "&api_key=" + apiKey +"&limit=" + limit
+
+		$.ajax({
+			url: myUrl,
+			method: "GET"
+		}).done(function(response){
+			console.log(response);
+			console.log(response.data[0].images.fixed_height.url)
+
+			appendImages();
+
+			function appendImages(){
+				var targetDiv = $(".imageList");
+				targetDiv.empty()
+
+				for (var i = 0; i < response.data.length; i++){
+
+					var urlStillSource = response.data[i].images.fixed_height_still.url
+					var urlAnimateSource = response.data[i].images.fixed_height.url
+					var targetDiv = $(".imageList");
+					var imageDiv = $("<img>");
+
+					targetDiv.append(imageDiv)
+					imageDiv.attr("src", urlStillSource)
+					imageDiv.attr("data-still", urlStillSource)
+					imageDiv.attr("data-animate", urlAnimateSource)
+					imageDiv.attr("data-state", "still")
+					imageDiv.attr("class", "gif")
+
+					var rating = response.data[i].rating;
+					var textDiv = $("<div>");
+					textDiv.text("rating: " + rating);
+					targetDiv.append(textDiv);
+
+					console.log("rating: " + rating);
+				}
+			}
+		})};
+	
+
+	//clicking on the image makes it animate and stop
+
+	$(document).on("click", ".gif", animateGif);
+
+	function animateGif(){
+
+		var state =  $(this).attr("data-state")
+		console.log(state);
+
+		if (state === "still"){
+
+			$(this).attr("src", $(this).attr("data-animate"));
+			$(this).attr("data-state","animate");
+
+		} else {
+			$(this).attr("src", $(this).attr("data-still"));
+			$(this).attr("data-state","still");
+		}
+	};
+
+
+
+
+
+</script>
+
+
+
+
+</body>
+</html>
